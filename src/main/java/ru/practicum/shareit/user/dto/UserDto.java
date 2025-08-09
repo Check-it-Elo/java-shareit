@@ -2,7 +2,8 @@ package ru.practicum.shareit.user.dto;
 
 import lombok.*;
 
-@Getter @Setter
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
