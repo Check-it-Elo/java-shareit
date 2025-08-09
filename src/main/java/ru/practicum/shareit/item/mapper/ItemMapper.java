@@ -6,7 +6,8 @@ import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 public final class ItemMapper {
-    private ItemMapper() {}
+    private ItemMapper() {
+    }
 
     public static ItemDto toItemDto(Item item) {
         if (item == null) return null;
