@@ -24,21 +24,6 @@ public class ItemServiceImpl implements ItemService {
         this.userService = userService;
     }
 
-    //    @Override
-//    public ItemDto create(Long ownerId, ItemDto dto) {
-//        // Получаем DTO пользователя и конвертируем в модель
-//        UserDto ownerDto = userService.getById(ownerId);
-//        User owner = toUser(ownerDto);
-//
-//        ItemRequest req = (dto.getRequestId() == null) ? null :
-//                new ItemRequest(dto.getRequestId(), null, null, null);
-//
-//        Item item = ItemMapper.toItem(dto, owner, req);
-//        item.setId(seq.getAndIncrement());
-//        storage.put(item.getId(), item);
-//
-//        return ItemMapper.toItemDto(item);
-//    }
     @Override
     public ItemDto create(Long ownerId, ItemDto dto) {
         // валидируем вход
