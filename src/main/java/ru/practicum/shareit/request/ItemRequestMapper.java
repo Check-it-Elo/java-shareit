@@ -14,5 +14,4 @@ public final class ItemRequestMapper {
                 .created(r.getCreated())
                 .build();
     }
-    
 }
