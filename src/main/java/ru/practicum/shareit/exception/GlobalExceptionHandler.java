@@ -52,18 +52,19 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException.class,
             ConstraintViolationException.class
     })
-
     public ResponseEntity<ErrorResponse> badRequest(Exception ex) {
         String message = ex.getMessage();
 
-        if (ex instanceof MethodArgumentNotValidException manv) {
+        if (ex instanceof MethodArgumentNotValidException) {
+            MethodArgumentNotValidException manv = (MethodArgumentNotValidException) ex;
             // Собираем ошибки валидации полей тела запроса
             message = manv.getBindingResult().getFieldErrors().stream()
                     .map(err -> err.getField() + ": " + err.getDefaultMessage())
                     .reduce((a, b) -> a + "; " + b)
                     .orElse(manv.getMessage());
-        } else if (ex instanceof ConstraintViolationException cve) {
-            // Собираем ошибки валидации параметров/заголовков
+        } else if (ex instanceof ConstraintViolationException) {
+            ConstraintViolationException cve = (ConstraintViolationException) ex;
+            // Собираем ошибки валидации параметров/заголовков (@Validated на контроллерах)
             message = cve.getConstraintViolations().stream()
                     .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                     .reduce((a, b) -> a + "; " + b)
