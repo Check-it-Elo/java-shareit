@@ -4,7 +4,8 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.model.Comment;
 
 public final class CommentMapper {
-    private CommentMapper() {}
+    private CommentMapper() {
+    }
 
     public static CommentDto toDto(Comment c) {
         if (c == null) return null;
@@ -15,4 +16,5 @@ public final class CommentMapper {
                 .created(c.getCreated())
                 .build();
     }
+
 }

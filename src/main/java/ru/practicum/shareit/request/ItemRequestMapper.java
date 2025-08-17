@@ -3,7 +3,8 @@ package ru.practicum.shareit.request;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 public final class ItemRequestMapper {
-    private ItemRequestMapper() {}
+    private ItemRequestMapper() {
+    }
 
     public static ItemRequestDto toDto(ItemRequest r) {
         if (r == null) return null;
@@ -13,4 +14,5 @@ public final class ItemRequestMapper {
                 .created(r.getCreated())
                 .build();
     }
+    
 }

@@ -18,12 +18,20 @@ public class BookingDto {
     private UserShortDto booker;
     private ItemShortDto item;
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class UserShortDto {
         private Long id;
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ItemShortDto {
         private Long id; private String name;
     }
