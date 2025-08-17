@@ -1,14 +1,14 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
-
+@Validated
 @RestController
 @RequestMapping("/items")
 public class ItemController {
@@ -21,8 +21,8 @@ public class ItemController {
 
     @PostMapping
     public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                          @RequestBody ItemDto dto) {
-        return items.create(ownerId, dto);
+                          @RequestBody ItemDto body) {
+        return items.create(ownerId, body);
     }
 
     @PatchMapping("/{itemId}")
@@ -39,12 +39,19 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> ownerItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+    public List<ItemDto> getOwnerItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
         return items.getOwnerItems(ownerId);
     }
 
     @GetMapping("/search")
     public List<ItemDto> search(@RequestParam String text) {
         return items.search(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @PathVariable Long itemId,
+                                 @RequestBody CommentCreateDto body) {
+        return items.addComment(userId, itemId, body);
     }
 }

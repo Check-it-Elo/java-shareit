@@ -9,6 +9,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -22,11 +27,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(resp);
     }
 
-    // 404 — не найдено
+    // 404 — не найдено (сущность)
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ErrorResponse> notFound(NoSuchElementException ex) {
         log.warn("404 Not Found: {}", ex.getMessage());
         return body(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
+    }
+
+    // 404 — не найден эндпоинт
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ErrorResponse> noHandler(NoHandlerFoundException ex) {
+        String msg = "Endpoint not found: " + ex.getRequestURL();
+        log.warn("404 No handler: {}", msg);
+        return body(HttpStatus.NOT_FOUND, "NOT_FOUND", msg);
     }
 
     // 400 — неверные данные запроса
@@ -35,18 +48,61 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException.class,
             MissingRequestHeaderException.class,
             HttpMessageNotReadableException.class,
-            MethodArgumentNotValidException.class
+            MethodArgumentNotValidException.class,
+            MissingServletRequestParameterException.class,
+            ConstraintViolationException.class
     })
+
     public ResponseEntity<ErrorResponse> badRequest(Exception ex) {
-        log.warn("400 Bad Request: {}", ex.getMessage());
+        String message = ex.getMessage();
+
+        if (ex instanceof MethodArgumentNotValidException manv) {
+            // Собираем ошибки валидации полей тела запроса
+            message = manv.getBindingResult().getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse(manv.getMessage());
+        } else if (ex instanceof ConstraintViolationException cve) {
+            // Собираем ошибки валидации параметров/заголовков
+            message = cve.getConstraintViolations().stream()
+                    .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse(cve.getMessage());
+        }
+
+        log.warn("400 Bad Request: {}", message);
+        return body(HttpStatus.BAD_REQUEST, "BAD_REQUEST", message);
+    }
+
+    // 400 — некорректное состояние
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> illegalState(IllegalStateException ex) {
+        log.warn("400 Bad Request (illegal state): {}", ex.getMessage());
         return body(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage());
     }
 
-    // 403 — запрет (например, редактирует не владелец)
+    // 403 — запрет
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<ErrorResponse> forbidden(SecurityException ex) {
         log.warn("403 Forbidden: {}", ex.getMessage());
         return body(HttpStatus.FORBIDDEN, "FORBIDDEN", ex.getMessage());
+    }
+
+    // 409 — наш доменный конфликт
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> conflict(ConflictException ex) {
+        log.warn("409 Conflict: {}", ex.getMessage());
+        return body(HttpStatus.CONFLICT, "CONFLICT", ex.getMessage());
+    }
+
+    // 409 — конфликты на уровне БД/уникальные индексы
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> dataIntegrity(DataIntegrityViolationException ex) {
+        String mostSpecific = ex.getMostSpecificCause() != null
+                ? ex.getMostSpecificCause().getMessage()
+                : ex.getMessage();
+        log.warn("409 Conflict (data integrity): {}", mostSpecific);
+        return body(HttpStatus.CONFLICT, "CONFLICT", mostSpecific);
     }
 
     // 500 — непредвиденная ошибка
@@ -56,9 +112,4 @@ public class GlobalExceptionHandler {
         return body(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Unexpected server error");
     }
 
-    @ExceptionHandler(ru.practicum.shareit.exception.ConflictException.class)
-    public ResponseEntity<ErrorResponse> conflict(ru.practicum.shareit.exception.ConflictException ex) {
-        log.warn("409 Conflict: {}", ex.getMessage());
-        return body(HttpStatus.CONFLICT, "CONFLICT", ex.getMessage());
-    }
 }
